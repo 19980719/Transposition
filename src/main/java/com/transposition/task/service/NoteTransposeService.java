@@ -1,5 +1,6 @@
 package com.transposition.task.service;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.io.IOException;
@@ -18,12 +19,12 @@ public class NoteTransposeService {
     private final NoteValidationService validationService = new NoteValidationService();
 
     // Reads the input JSON file, transposes the notes, validates, and writes the result to an output JSON file
-    public void writeTransposedNotesToFile(String inputFilePath, int semitones, String outputFilePath) {
+    public void writeTransposedNotesToFile(String inputFilePath, int semitones) {
         try {
             var notes = readNotesFromFile(inputFilePath);
             var transposedNotes = getTransposedNotes(notes, semitones);
             if (transposedNotes.stream().allMatch(validationService::isValidNote)) {
-                writeToFile(transposedNotes, outputFilePath);
+                logToConsole(transposedNotes);
             } else {
                 System.err.println("Transposed notes fall out of the keyboard range");
             }
@@ -67,11 +68,10 @@ public class NoteTransposeService {
         return List.of(transposeOctave, transposeNote);
     }
 
-    //Write to output file
-    private void writeToFile(List<List<Integer>> transposedNotes, String outputFilePath) throws IOException {
+    //Log to console
+    private void logToConsole(List<List<Integer>> transposedNotes) throws JsonProcessingException {
         var transposedJson = objectMapper.writeValueAsString(transposedNotes);
-        Files.write(Paths.get(outputFilePath), transposedJson.getBytes());
-        System.out.println("Transposition completed successfully. Result saved by path: " + outputFilePath);
+        System.out.println("Transposition completed successfully. Result: \n" + transposedJson);
     }
 
 }
